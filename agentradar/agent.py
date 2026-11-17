@@ -81,7 +81,7 @@ class TaskJournal:
 
 
 class ResearchAgent:
-    def __init__(self, root, config, client, progress=None):
+    def __init__(self, root, config, client, progress=None, should_stop=None):
         self.root, self.config, self.client = root, config, client
         self.store = Store(root / "data/radar.db")
         self.journal = TaskJournal(self.store.path)
@@ -89,6 +89,7 @@ class ResearchAgent:
         self.model = ChatModel(client, config, self.budget)
         self.tools = ResearchTools(client, config, self.store, self.budget.deadline)
         self.progress = progress or (lambda message: None)
+        self.should_stop = should_stop or (lambda: False)
 
     def _event(self, state, kind, **fields):
         event = {"at": stamp(), "type": kind, **fields}
@@ -131,7 +132,10 @@ class ResearchAgent:
         maximum_tools = self.config.get("agent_max_tools", 12)
         errors = 0
         try:
+            self.progress({"type": "started", "task_id": state["id"]})
             for step in range(maximum_steps + 1):
+                if self.should_stop():
+                    raise BudgetExceeded("已按请求暂停，证据和执行进度已保存。")
                 if time.monotonic() >= self.budget.deadline:
                     raise BudgetExceeded("本次研究达到时间上限，可稍后恢复")
                 if not state["pending"]:
@@ -163,6 +167,8 @@ class ResearchAgent:
                     self.journal.save(state)
                 # Pending calls are persisted before execution, enabling interrupted runs to resume.
                 while state["pending"]:
+                    if self.should_stop():
+                        raise BudgetExceeded("已按请求暂停，证据和执行进度已保存。")
                     call = state["pending"][0]
                     name = call["function"]["name"]
                     completed_event = None
@@ -258,13 +264,13 @@ def export_research(root, state):
         temporary.replace(path)
 
 
-def research(root, question=None, resume_id=None, config=None, client=None, progress=None):
+def research(root, question=None, resume_id=None, config=None, client=None, progress=None, should_stop=None):
     with run_lock(root):
         config = config or load_config(root)
         owned = client is None
         client = client or httpx.Client(timeout=config.get("http_timeout_seconds", 20), follow_redirects=False)
         try:
-            return ResearchAgent(root, config, client, progress).run(question, resume_id)
+            return ResearchAgent(root, config, client, progress, should_stop).run(question, resume_id)
         finally:
             if owned:
                 client.close()

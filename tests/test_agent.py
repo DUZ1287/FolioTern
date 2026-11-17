@@ -187,3 +187,24 @@ def test_interrupt_after_tool_result_keeps_model_observation(setup):
         finished = research(root, resume_id=paused["id"], config=config, client=client)
     assert finished["status"] == "completed"
     assert len(source_calls) == 1
+
+
+def test_cooperative_pause_keeps_observation_and_avoids_next_call(setup):
+    root, config = setup
+    stopped = False
+    calls = []
+    def handler(request):
+        calls.append(request)
+        if request.method == "GET":
+            return httpx.Response(200, json={"encoding": "base64", "content": base64.b64encode(b"Readme").decode()})
+        return completion("read_project", {"repo": "example/project"})
+    def progress(event):
+        nonlocal stopped
+        if event["type"] == "tool_result":
+            stopped = True
+    with httpx.Client(transport=httpx.MockTransport(handler)) as client:
+        state = research(root, "研究项目", config=config, client=client, progress=progress, should_stop=lambda: stopped)
+    assert state["status"] == "paused"
+    assert "按请求暂停" in state["error"]
+    assert len(calls) == 2 and state["pending"] == []
+    assert state["messages"][-1]["role"] == "tool"
