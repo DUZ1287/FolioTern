@@ -1,0 +1,22 @@
+{
+  "sources": {
+    "github_repos": ["openai/openai-agents-python", "langchain-ai/langgraph", "modelcontextprotocol/python-sdk"],
+    "arxiv_categories": ["cs.AI", "cs.CL", "cs.LG"],
+    "discovery_queries": ["agent language:Python created:>{date}", "retrieval language:Python pushed:>{date}", "evaluation language:Python created:>{date}"]
+  },
+  "lookback_days": 7,
+  "source_limit": 20,
+  "candidate_limit": 12,
+  "report_limit": 6,
+  "research_limit": 3,
+  "tools_per_item": 3,
+  "max_llm_calls": 24,
+  "max_token_budget": 120000,
+  "max_output_tokens": 1600,
+  "run_timeout_seconds": 600,
+  "agent_max_steps": 8,
+  "agent_max_tools": 12,
+  "http_timeout_seconds": 20,
+  "topics": ["agent", "tool", "memory", "retrieval", "rag", "evaluation", "benchmark", "mcp", "coding", "security", "智能体", "检索", "评测"],
+  "llm": {"base_url": "", "model": "", "json_mode": false}
+}
