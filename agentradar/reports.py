@@ -40,8 +40,9 @@ def render(report=None, **context):
     defaults = {"report": report, "live": False, "page": "today", "history": [], "feedback": [],
                 "stats": {}, "csrf": "", "model": {}, "tasks": [], "task": None, "model_ready": False,
                 "practice": report.get("practice") if report else None,
-                "styles": (ASSETS / "style.css").read_text(encoding="utf-8"),
-                "script": (ASSETS / "app.js").read_text(encoding="utf-8"),
+                "appearance": {"theme": "light", "reduce_motion": False},
+                "styles": (ASSETS / "style.css").read_text(encoding="utf-8") + (ASSETS / "glass.css").read_text(encoding="utf-8"),
+                "script": (ASSETS / "app.js").read_text(encoding="utf-8") + '\n' + (ASSETS / "settings.js").read_text(encoding="utf-8"),
                 "feedback_labels": {"useful": "有用", "saved": "已收藏", "hard": "暂时太难", "ignore": "不感兴趣", "completed": "已完成实践"}}
     defaults.update(context)
     return ENV.get_template("index.html").render(**defaults)

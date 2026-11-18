@@ -11,7 +11,7 @@ import sqlite3
 import httpx
 
 from .analysis import Analyzer, Budget, BudgetExceeded, ModelFailure, CST
-from .collectors import collect
+from .managed_sources import collect
 from .config import load_config, model_ready
 from .storage import Store
 
@@ -110,7 +110,7 @@ def practice_for(store):
 
 def run(root: Path, *, client=None, config=None):
     with run_lock(root):
-        config = config or load_config(root)
+        config = config or load_config(root, purpose="daily")
         config = {**config, "_deadline": time.monotonic() + config.get("run_timeout_seconds", 600)}
         store = Store(root / "data/radar.db")
         budget = Budget(store.path, config)

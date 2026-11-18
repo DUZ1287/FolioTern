@@ -50,7 +50,7 @@ def _date(value) -> str | None:
 
 def _request(client: httpx.Client, url: str, token: str = "", params=None, deadline=None, timeout=None):
     host = urlsplit(url).hostname
-    if host not in {"api.github.com", "rss.arxiv.org"}:
+    if host not in {"api.github.com", "rss.arxiv.org", "export.arxiv.org"}:
         raise CollectionError("不支持的来源主机")
     for attempt in range(3):
         _remaining(deadline)

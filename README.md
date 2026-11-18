@@ -1,6 +1,59 @@
 # AgentRadar
 
-面向个人学习与工程实践的 AI 技术研究 Agent。核心是可独立运行的 Python 程序；网页只是可选阅读界面，关闭浏览器不影响命令行研究和定时采集。
+面向个人学习与工程实践的 AI 技术研究 Agent，提供 Windows 桌面软件、命令行及可选本地 Web 工作台。桌面窗口复用原生 Function Calling Agent，保留证据、预算、SQLite 持久化与暂停恢复。
+
+## Windows 桌面版
+
+构建完成后双击 **`dist/windows/AgentRadar/AgentRadar.exe`**。分发时复制整个 `AgentRadar` 文件夹（包括 `_internal`），或运行 `scripts/Build-Desktop.ps1` 生成 Windows 压缩包。完整解压后双击其中的 EXE。桌面版默认数据目录为 `%LOCALAPPDATA%\AgentRadar`；CLI 默认仍使用项目目录，两者不会自动混写。
+
+开发环境也可以双击 `启动桌面版.cmd`。需要 Windows 10/11、.NET 4.x 与 [Microsoft Edge WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/)。窗口优先使用 WebView2，失败时不会降级到旧 IE 内核。
+
+- **概览 / 每日情报 / 自主研究**：查看真实数据、更新日报、提问、查看工具轨迹与引用、暂停/恢复和导出。
+- **信息源管理**：添加、编辑、删除、启停 GitHub Releases、GitHub 搜索、arXiv 分类/搜索及通用 RSS/Atom；设置关键词和数量，测试连接或直接入库，查看检查时间、结果数量与失败原因。来源配置保存在 SQLite，首次从原 `config.json` 导入。
+- **大模型配置**：创建多个兼容服务档案，配置用途、模型 ID、Token 参数、JSON 模式和预算。保存后选择“使用此模型”。可读取服务的 `/models` 列表，也可手动填写 Model ID。本地无认证兼容服务的密钥填写 `local`。
+- **模型能力验证**：真实请求依次验证基本响应、原生 `tool_calls` 和参数、工具观察回传与 JSON 结果。最多 3 次模型调用，计入每日预算；失败阶段会明确显示。
+- **安全凭据**：新模型配置只在 Windows Credential Manager 保存 API Key，数据库仅存凭据引用；读取接口不返回密钥。旧 CLI `.env` 仍兼容，迁移不会自动复制其中的密钥。凭据管理器不可用时明确失败，不回退明文。
+- **知识库与收藏**：搜索最近 500 条已采集信息，收藏、标记有用或记录实践完成；实践页沿用现有任务卡。
+- **自动任务 / 运行状态**：可选择窗口内运行，或勾选“关闭窗口后也运行”登记 Windows 任务。系统模式使用北京时间，需电脑开机且当前用户已登录。自动任务页保留最近后台采集时间、条数和失败或跳过原因。最近 15 次采集的真实状态可查。
+- **系统设置**：浅色冰透、深色、低透明度主题和减少动画；显示当前数据目录。
+
+### 关闭、并发与兼容性
+
+桌面版绑定 `127.0.0.1` 的系统分配端口，持有监听套接字以避免端口争用。同一用户数据目录只允许一个桌面实例；第二次启动会提示已有实例。写接口保留 Origin/CSRF 校验。
+
+关闭窗口会禁止新任务、请求研究暂停，并等待当前网络操作结束后退出；采集和模型测试会等待当前任务完成，因此关闭可能需要一段时间。退出后没有隐藏常驻采集进程。自动任务页可登记或移除本数据目录的 Windows 计划。原 CLI 计划独立存在，如已启用旧计划，请选择一份使用。
+
+模型切换不删除历史或清空预算。新研究记录不含密钥的模型签名；恢复需使用相同服务、模型及协议选项。旧版尚无签名的任务第一次恢复时记录当前签名。分析缓存继续按服务地址、模型、输入和提示版本区分。
+
+通用 RSS 仅接受公网 HTTPS/443：检查地址和 DNS 全部结果，再固定已校验 IP 建立 TLS 连接并验证原域名。拒绝重定向、私网、本机、实体声明、未请求压缩及超过 4 MiB 的响应；此路径不经过系统代理，避免代理端重新解析绕过校验。需要代理才能直连的订阅会明确失败，不会降低此限制。GitHub/arXiv 固定主机采集仍支持原有网络环境。
+
+### 首次迁移
+
+目标必须是空目录。关闭旧任务后运行（替换示例路径）：
+
+```powershell
+.\dist\windows\AgentRadar\AgentRadar.exe --migrate-from '旧 AgentRadar 项目目录'
+```
+
+原目录不修改；使用 SQLite backup 复制日报、研究任务、证据和反馈，复制报告及非敏感来源配置。密钥不迁移，请在新模型中心重新输入。已存在桌面数据时拒绝覆盖；需要单独试迁移可加 `--data-dir '新的空目录'`。迁移不复制旧任务调度设置。
+
+### 源码安装与构建
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements-desktop.lock.txt
+.\.venv\Scripts\python.exe desktop.py
+.\.venv\Scripts\python.exe -m pytest -q
+.\.venv\Scripts\python.exe -m PyInstaller AgentRadar.spec --distpath dist/windows --noconfirm
+```
+
+锁定依赖对应本次 Windows/Python 3.14 构建；其他 Python 版本可先按 `requirements-desktop.in` 安装兼容版本后重新验证。`AgentRadar.spec` 显式包含模板、CSS、JS、默认配置和 pywebview 资源；不包含 `.env`、本机数据库、日志和报告。构建产物和本地数据均被 Git 忽略。构建工具只用于开发与打包，分发目录自带解释器。
+
+### 桌面升级验证范围
+
+详细结果见 [桌面验收记录](docs/DESKTOP-VALIDATION.md)，实施审查与参考来源见 [实施计划](docs/DESKTOP-PLAN.md)。模拟模型测试不等于真实服务兼容性或研究质量验收；本机 EXE 启动不等于干净 Windows 机器验收。
+
+## 原有 CLI 与 Web 使用方式
 
 ## 可视化工作台
 

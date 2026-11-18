@@ -1,23 +1,25 @@
 <!doctype html>
 <html lang="zh-CN">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="csrf-token" content="{{ csrf }}"><title>AgentRadar · 个人技术雷达</title><style>{{ styles | safe }}</style></head>
-<body>
+<body data-theme="{{appearance.theme}}" data-motion="{{'reduce' if appearance.reduce_motion else 'normal'}}" data-page="{{page}}">
 <aside class="rail">
   <a class="brand" href="{{ '/' if live else '#' }}"><span class="brand-icon">◎</span> AgentRadar<span class="brand-sub">你的 AI 技术观察站</span></a>
   <div class="rail-caption">工作台 / WORKSPACE</div>
   <nav aria-label="主导航">
-    {% for key,label,icon in [('research','Agent 工作台','◎'),('today','今日日报','◈'),('history','历史记录','◷'),('saved','收藏与反馈','◇'),('practice','本周实践','↗')] %}
-    <a class="nav-item {{ 'active' if page == key else '' }}" href="{{ '/' if key=='research' else '/' + key }}" {% if not live %}aria-disabled="true" tabindex="-1"{% endif %}><span>{{icon}}</span>{{label}}</a>
+    {% for key,label,icon in [('overview','概览仪表盘','◉'),('today','每日情报','◈'),('research','自主研究','◎'),('history','历史报告','◷'),('saved','知识库与收藏','◇'),('practice','工程实践','↗'),('sources','信息源管理','≋'),('models','大模型配置','✧'),('automation','自动任务','◴'),('status','运行状态','≡'),('system','系统设置','⚙')] %}
+    <a title="{{label}}" aria-label="{{label}}" class="nav-item {{ 'active' if page == key else '' }}" href="{{ '/' if key=='research' else '/' + key }}" {% if not live %}aria-disabled="true" tabindex="-1"{% endif %}><span>{{icon}}</span>{{label}}</a>
     {% endfor %}
   </nav>
-  <div class="rail-bottom"><div class="local-dot">本地工作空间</div><p>从知道，走到做到。</p>{% if live %}<a class="settings-link {{ 'selected' if page=='settings' else '' }}" href="/settings">模型与连接设置 ↗</a>{% else %}<span class="muted">静态归档 · 只读</span>{% endif %}</div>
+  <div class="rail-bottom"><div class="local-dot">本地工作空间</div><p>从知道，走到做到。</p>{% if live %}<a class="settings-link {{ 'selected' if page=='settings' else '' }}" href="/models">模型与连接设置 ↗</a>{% else %}<span class="muted">静态归档 · 只读</span>{% endif %}</div>
 </aside>
 <main>
 <header class="topbar"><span>PERSONAL INTELLIGENCE / AI & ENGINEERING</span><span class="edition">{{ report.date if report else '等待第一份日报' }} <b>·</b> 北京时间</span></header>
-<section class="hero"><div><div class="eyebrow">少一点信息噪声，多一点实际进展</div><h1>{{ {'research':'让好问题，找到好证据。','today':'今天，值得关注什么。','history':'让进展，有迹可循。','saved':'留下真正有用的。','practice':'把发现，变成作品。','settings':'连接你的思考引擎。'}[page] }}</h1><p class="hero-desc">{{ {'research':'研究、查证、实践。你的个人 AI 技术探索工作台。','today':'精选工程实践与科研进展，每一条都能回到原始来源。','history':'回看每天的技术信号，以及当时掌握的证据。','saved':'你的反馈会影响候选排序；收藏并不代表已经掌握。','practice':'每周只选一个小目标，留下代码、结果和自己的判断。','settings':'使用你选择的 OpenAI 兼容模型服务。配置仅保存在本机。'}[page] }}</p></div>
-{% if live and page not in ['settings','research'] %}<button id="refresh" class="primary">更新日报 <span>↻</span></button>{% endif %}</section>
+<section class="hero"><div><div class="eyebrow">少一点信息噪声，多一点实际进展</div><h1>{{ {'research':'让好问题，找到好证据。','today':'今天，值得关注什么。','history':'让进展，有迹可循。','saved':'留下真正有用的。','practice':'把发现，变成作品。','settings':'连接你的思考引擎。','overview':'你的个人技术观察站。','sources':'管理值得信赖的信息入口。','models':'连接你的思考引擎。','automation':'让好信息，按时到来。','status':'看清每一步的进展。','system':'你的空间，你来定义。'}[page] }}</h1><p class="hero-desc">{{ {'research':'研究、查证、实践。你的个人 AI 技术探索工作台。','today':'精选工程实践与科研进展，每一条都能回到原始来源。','history':'回看每天的技术信号，以及当时掌握的证据。','saved':'你的反馈会影响候选排序；收藏并不代表已经掌握。','practice':'每周只选一个小目标，留下代码、结果和自己的判断。','settings':'模型档案与工具能力验证。','overview':'AI 前沿情报 / 自主研究 / 工程实践','sources':'所有配置保存在本机，采集结果可追溯。','models':'不同用途，不同模型。同一套可验证的研究流程。','automation':'安排每日采集，保留真正值得关注的变化。','status':'真实的采集结果，以及需要你关注的问题。','system':'调整外观，了解数据与应用运行方式。'}[page] }}</p></div>
+{% if live and page in ['today','history','overview'] %}<button id="refresh" class="primary">更新日报 <span>↻</span></button>{% endif %}</section>
 <div id="notice" role="status" aria-live="polite" hidden></div>
-{% if page == 'research' %}
+{% if page in ['overview','sources','models','settings','automation','status','system','saved'] %}
+{% include 'settings-center.html' %}
+{% elif page == 'research' %}
 {% include 'research.html' %}
 {% elif page == 'settings' %}
 <section class="settings-panel"><div class="panel-label">MODEL CONNECTION</div><h2>模型接口</h2><p class="muted">填写服务商提供的接口地址、模型名称和 API Key。接入后，公开候选资料与必要偏好会发送到该服务。密钥不会出现在日报中。</p>

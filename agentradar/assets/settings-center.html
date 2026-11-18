@@ -1,0 +1,46 @@
+{% if page == 'sources' %}
+<section class="config-intro"><div><span class="panel-label">SOURCES / 01</span><h2>让信息，从源头变得清晰。</h2><p>订阅一手资料。关键词按“任意命中”筛选，测试不会写入知识库。</p></div><button class="primary" id="add-source">＋ 添加信息源</button></section>
+<div class="config-toolbar"><input id="source-filter" aria-label="筛选信息源" placeholder="搜索名称、类型或地址…"><span id="source-count" class="muted">正在读取本机配置</span></div>
+<div id="source-list" class="config-list" aria-live="polite"></div>
+<dialog id="source-dialog"><form id="source-form" class="config-form"><div class="dialog-heading"><h2>信息源配置</h2><button type="button" data-close="source-dialog" aria-label="关闭">×</button></div>
+<label>名称<input name="name" maxlength="100" required placeholder="例如：智能体框架发布"></label>
+<div class="field-pair"><label>来源类型<select name="kind"><option value="github_releases">GitHub Releases</option><option value="github_search">GitHub 仓库搜索</option><option value="arxiv_category">arXiv 分类</option><option value="arxiv_search">arXiv 论文搜索</option><option value="rss">RSS / Atom</option></select></label><label>单次最多采集<input name="limit" type="number" min="1" max="100" value="20" required></label></div>
+<label>仓库 / 分类 / 搜索词 / 订阅地址<input name="target" maxlength="1000" required autocomplete="off"></label><p id="source-hint" class="fine"></p>
+<label>关键词（逗号分隔，留空不筛选）<input name="keywords" placeholder="agent, memory, 评测" maxlength="2000"></label><label class="check"><input type="checkbox" name="enabled" checked>启用此来源</label>
+<div class="form-actions"><button type="button" class="secondary" data-close="source-dialog">取消</button><button type="submit" class="primary">保存信息源</button></div><p class="dialog-error" role="alert"></p></form></dialog>
+{% elif page in ['models','settings'] %}
+<section class="config-intro"><div><span class="panel-label">MODEL PROFILES / 02</span><h2>为研究，选择合适的模型。</h2><p>支持自定义兼容接口与本地服务。密钥保存到 Windows 凭据管理器。</p></div><button class="primary" id="add-profile">＋ 添加模型档案</button></section>
+<div class="mode-note">保存后点击“使用此模型”分配用途。完整能力测试最多调用 3 次，计入所设每日预算；聊天成功不等于支持 Agent 工具调用。</div>
+<div id="profile-list" class="config-list" aria-live="polite"></div>
+<dialog id="profile-dialog"><form id="profile-form" class="config-form"><div class="dialog-heading"><h2>模型档案</h2><button type="button" data-close="profile-dialog" aria-label="关闭">×</button></div>
+<div class="field-pair"><label>档案名称<input name="name" required maxlength="100" placeholder="我的研究模型"></label><label>服务商<input name="provider" value="OpenAI 兼容" maxlength="100" required></label></div>
+<label>Base URL<input name="base_url" type="url" required placeholder="https://服务地址/v1" maxlength="500"></label>
+<label>Model ID<input name="model" required maxlength="200" list="available-models" placeholder="填写服务商给出的模型 ID"></label><datalist id="available-models"></datalist>
+<label>API Key<input name="api_key" type="password" maxlength="2000" autocomplete="new-password" placeholder="编辑时留空保留；本地无认证服务填写 local"></label>
+<div class="field-pair"><label>用途<select name="purpose"><option value="all">研究 + 日报</option><option value="research">自主研究</option><option value="daily">每日分析</option></select></label><label>输出长度参数<select name="token_parameter"><option value="max_tokens">max_tokens</option><option value="max_completion_tokens">max_completion_tokens</option></select></label></div>
+<div class="field-pair"><label>每日调用上限<input type="number" name="max_llm_calls" value="24" min="1" max="500" required></label><label>每日 Token 预留上限<input type="number" name="max_token_budget" value="120000" min="1000" max="10000000" required></label></div>
+<label>单次输出 Token 上限<input type="number" name="max_output_tokens" value="1600" min="128" max="32000" required></label>
+<div class="field-pair"><label class="check"><input type="checkbox" name="json_mode">启用 JSON 输出模式</label><label class="check"><input type="checkbox" name="enabled" checked>启用档案</label></div>
+<p class="fine">预算计数在本地按日累计，切换档案不会清空已用额度。新模型不影响历史报告；恢复研究需要切回原模型配置。</p>
+<div class="form-actions"><button type="button" data-close="profile-dialog" class="secondary">取消</button><button class="primary" type="submit">安全保存</button></div><p class="dialog-error" role="alert"></p></form></dialog>
+{% elif page == 'saved' %}
+<section class="config-intro"><div><span class="panel-label">KNOWLEDGE / COLLECTION</span><h2>留下资料，也留下自己的判断。</h2><p>搜索最近 500 条已采集信息；收藏与实践反馈会持续影响推荐。</p></div></section>
+<div class="config-toolbar"><input id="library-query" placeholder="搜索标题或正文…" aria-label="搜索知识库"><label class="check"><input id="library-saved" type="checkbox" style="width:17px"> 仅收藏</label><button class="secondary" id="library-search">搜索</button></div><div id="library-list" class="config-list"></div>
+{% elif page == 'system' %}
+<section class="settings-panel"><span class="panel-label">APPEARANCE</span><h2>让工作空间，适合你的节奏。</h2><form id="appearance-form" class="config-form"><label>界面主题<select name="theme"><option value="light">浅色 · 冰透玻璃</option><option value="dark">深色 · 夜间阅读</option><option value="opaque">低透明度 · 清晰专注</option></select></label><label class="check"><input type="checkbox" name="reduce_motion">减少动态效果</label><button type="submit" class="primary">保存外观</button></form></section>
+<section class="settings-panel"><h2>本机数据</h2><p id="data-path" class="mono"></p><p>配置、报告、任务和日志持久保存在此目录。程序升级不会覆盖这些数据。</p><p class="fine">迁移旧项目：首次启动时使用 --migrate-from 指向旧目录，目标必须为空。研究与日报记录会复制，原目录保留；密钥需要在模型中心重新输入。</p></section>
+{% elif page == 'automation' %}
+<section class="settings-panel"><h2>每日日报采集</h2>
+<form id="schedule-form" class="config-form">
+<label>每日时间（北京时间）<input name="time" type="time" value="08:30" required></label>
+<label class="check"><input name="enabled" type="checkbox">启用每日自动运行</label>
+<label class="check"><input name="background" type="checkbox">关闭窗口后也运行（Windows 任务计划程序）</label>
+<p class="fine">关窗采集需要电脑开机且当前用户已登录。程序移动后请重新保存。若旧 CLI 也设了计划，请选择其中一份计划，避免重复采集。</p>
+<button class="primary" type="submit">保存自动任务</button></form>
+<p id="last-auto" role="status"></p><p id="external-result" role="status"></p></section>
+{% elif page == 'status' %}
+<section class="config-intro"><div><span class="panel-label">ACTIVITY / LOCAL</span><h2>每一次采集，都有迹可循。</h2><p>展示最近 15 次真实采集记录，包含来源失败与部分完成情况。</p></div><button class="secondary" id="reload-status">刷新状态</button></section><div id="runtime-state" class="mode-note"></div><div id="run-list" class="config-list"></div>
+{% elif page == 'overview' %}
+<section class="overview-lead"><div><span class="panel-label">YOUR PERSONAL OBSERVATORY</span><h2>看见变化。<br><span>做出自己的判断。</span></h2><p>从一手资料出发，让每一次研究<br>落到证据、理解与可执行的小实践。</p><a class="primary" href="/research">开始自主研究 ↗</a></div><div class="orbital" aria-hidden="true"><div>◎<small>AgentRadar</small></div></div></section>
+<div id="overview-stats" class="overview-stats"></div><div class="overview-links"><a class="settings-panel" href="/sources"><span class="panel-label">01 / COLLECT</span><h3>管理信息源 ↗</h3><p>公开项目、论文与订阅，一处配置。</p></a><a class="settings-panel" href="/models"><span class="panel-label">02 / RESEARCH</span><h3>连接思考引擎 ↗</h3><p>校验真实工具能力，再开始研究。</p></a><a class="settings-panel" href="/practice"><span class="panel-label">03 / BUILD</span><h3>把发现变成作品 ↗</h3><p>选择一个小目标，留下自己的验证。</p></a></div>
+{% endif %}

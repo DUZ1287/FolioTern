@@ -111,12 +111,16 @@ class ResearchAgent:
         self._event(state, "finished", outcome=conclusion.outcome, findings=len(conclusion.findings))
 
     def run(self, question=None, resume_id=None):
+        model_signature = hashlib.sha256(json.dumps({k: self.config['llm'].get(k) for k in (
+            'base_url', 'model', 'token_parameter', 'json_mode')}, sort_keys=True).encode()).hexdigest()
         if not model_ready(self.config):
             raise ModelFailure("尚未配置模型。请先运行 python radar.py configure，在本机填写兼容 API 地址、模型名和密钥。")
         if resume_id:
             state = self.journal.get(resume_id)
             if state["status"] == "completed":
                 return state
+            if state.get('model_signature') and state['model_signature'] != model_signature:
+                raise ModelFailure('该任务使用其他模型配置。请切回原服务和模型后恢复，或创建新研究。')
             state["status"], state["error"] = "running", None
         else:
             if not question or not 1 <= len(question.strip()) <= 2000:
@@ -125,6 +129,7 @@ class ResearchAgent:
                      "messages": [{"role": "system", "content": SYSTEM}, {"role": "user", "content": "北京时间 " + datetime.now(CST).isoformat() + "\n研究目标：" + question.strip()}],
                      "evidence": [], "trace": [], "pending": [], "seen_calls": [], "result": None, "error": None,
                      "usage": {"calls": 0, "reserved_tokens": 0, "reported_tokens": 0}}
+        state['model_signature'] = model_signature
         self.journal.save(state)
         specs = self.tools.definitions() + [{"type": "function", "function": {"name": "finish_research",
                  "description": "已有足够证据或无法继续时提交中文结论。只引用已有 evidence_id。", "parameters": Conclusion.model_json_schema()}}]

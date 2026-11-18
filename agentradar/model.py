@@ -16,6 +16,11 @@ class ChatModel:
         maximum = self.config.get("max_output_tokens", 1600)
         body = {"model": llm["model"], "messages": messages, "tools": tools,
                 "tool_choice": {"type": "function", "function": {"name": "finish_research"}} if finish_only else "auto"}
+        if not tools:
+            body.pop('tools')
+            body.pop('tool_choice')
+            if llm.get('json_mode'):
+                body['response_format'] = {'type': 'json_object'}
         token_parameter = llm.get("token_parameter", "max_tokens")
         if token_parameter not in {"max_tokens", "max_completion_tokens"}:
             raise ModelFailure("模型输出长度参数必须为 max_tokens 或 max_completion_tokens")

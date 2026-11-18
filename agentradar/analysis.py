@@ -92,7 +92,8 @@ class Analyzer:
         # UTF-8 bytes overestimate visible input tokens for common BPE tokenizers.
         reserve = len(json.dumps(messages, ensure_ascii=False).encode("utf-8")) + self.config.get("max_output_tokens", 1600) + 256
         self.budget.reserve(reserve)
-        body = {"model": self.llm["model"], "messages": messages, "max_tokens": self.config.get("max_output_tokens", 1600)}
+        body = {"model": self.llm["model"], "messages": messages,
+                self.llm.get("token_parameter", "max_tokens"): self.config.get("max_output_tokens", 1600)}
         if self.llm.get("json_mode"):
             body["response_format"] = {"type": "json_object"}
         try:

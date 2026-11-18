@@ -9,7 +9,7 @@ from dotenv import dotenv_values
 ROOT = Path(__file__).resolve().parent.parent
 
 
-def load_config(root: Path = ROOT) -> dict:
+def load_config(root: Path = ROOT, purpose: str = "research") -> dict:
     config = json.loads((root / "config.json").read_text(encoding="utf-8-sig"))
     local_path = root / "config.local.json"
     if local_path.exists():
@@ -23,6 +23,13 @@ def load_config(root: Path = ROOT) -> dict:
     config["github_token"] = env.get("GITHUB_TOKEN", "")
     config["llm"].setdefault("api_key", "")
     validate_endpoint(config["llm"].get("base_url", ""))
+    if (root / 'data/settings.db').exists():
+        from .preferences import Preferences
+        prefs = Preferences(root)
+        if prefs.option('sources_initialized'):
+            config['_managed_sources'] = prefs.list('source')
+            config['_root'] = root
+        config = prefs.apply_model(config, purpose)
     return config
 
 

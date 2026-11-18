@@ -40,7 +40,7 @@ def create_app(root: Path):
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "[::1]", "testserver"])
     store = Store(root / "data/radar.db")
     token = secrets.token_urlsafe(32)
-    state = {"running": False, "error": None, "kind": None, "task_id": None, "pause_requested": False}
+    state = {"running": False, "error": None, "kind": None, "task_id": None, "pause_requested": False, "closing": False}
     state_lock = threading.Lock()
     pause = threading.Event()
     journal = TaskJournal(store.path)
@@ -70,6 +70,7 @@ def create_app(root: Path):
                                    history=store.reports(), feedback=store.feedback_items(), stats=store.stats(),
                                    tasks=journal.recent(), task=task, model_ready=model_ready(config),
                                    practice=practice_for(store),
+                                   appearance=prefs.option('appearance', {'theme': 'light', 'reduce_motion': False}),
                                    model={"base_url": llm.get("base_url", ""), "model": llm.get("model", ""),
                                           "has_key": bool(llm.get("api_key"))}))
 
@@ -79,7 +80,7 @@ def create_app(root: Path):
 
     @app.get("/{name}", response_class=HTMLResponse)
     def section(name: str):
-        if name not in {"research", "today", "history", "saved", "practice", "settings"}:
+        if name not in {"research", "today", "history", "saved", "practice", "settings", "overview", "sources", "models", "automation", "status", "system"}:
             raise HTTPException(404)
         return page(name)
 
@@ -103,7 +104,8 @@ def create_app(root: Path):
         task = get_task(task_id)
         with state_lock:
             active = state["running"] and state["task_id"] == task_id
-        return {key: task.get(key) for key in ("id", "question", "status", "trace", "evidence", "result", "error", "usage", "updated_at")} | {"active": active}
+            launch_error = state['error'] if state['task_id'] == task_id else None
+        return {key: task.get(key) for key in ("id", "question", "status", "trace", "evidence", "result", "error", "usage", "updated_at")} | {"active": active, "error": launch_error or task.get('error')}
 
     @app.get("/research/{task_id}/download")
     def download_research(task_id: str):
@@ -138,7 +140,7 @@ def create_app(root: Path):
         if not model_ready(load_config(root)):
             raise HTTPException(400, "请先在模型设置中配置接口地址、模型名称和密钥。")
         with state_lock:
-            if state["running"]:
+            if state["running"] or state['closing']:
                 raise HTTPException(409, "已有任务运行中，请等待完成或先暂停。")
             pause.clear()
             state.update(running=True, error=None, kind="research", task_id=resume_id, pause_requested=False)
@@ -185,7 +187,7 @@ def create_app(root: Path):
     @app.post("/api/run")
     def start_run():
         with state_lock:
-            if state["running"]:
+            if state["running"] or state['closing']:
                 raise HTTPException(409, "已有任务正在运行")
             state.update(running=True, error=None, kind="daily", task_id=None, pause_requested=False)
         threading.Thread(target=background_run, daemon=True, name="radar-collect").start()
@@ -237,4 +239,49 @@ def create_app(root: Path):
             raise HTTPException(400, str(exc)) from None
         return {"message": "连接成功，模型已返回符合格式的中文分析结果。", "usage": budget.usage()}
 
+    from .settings_api import install_settings
+    prefs = install_settings(app, root, store, state, state_lock, start_run)
+
+    def prepare_close():
+        with state_lock:
+            state['closing'] = True
+            pause.set()
+            if state['running']:
+                state['pause_requested'] = True
+            return not state['running']
+    app.state.prepare_close = prepare_close
+    app.state.job_state = state
+
+    # Service-scoped scheduler: deliberately no invisible resident process.
+    from contextlib import asynccontextmanager
+    import asyncio
+    from datetime import datetime
+    from .analysis import CST
+
+    async def schedule_loop():
+        while True:
+            await asyncio.sleep(15)
+            setting = prefs.option('schedule', {})
+            now = datetime.now(CST)
+            day = now.date().isoformat()
+            if (setting.get('enabled') and not setting.get('background') and now.strftime('%H:%M') >= setting.get('time', '08:30')
+                    and prefs.option('last_auto_date') != day and not state['running'] and not state['closing']):
+                try:
+                    start_run()
+                    prefs.set_option('last_auto_date', day)
+                except HTTPException:
+                    pass
+
+    @asynccontextmanager
+    async def lifecycle(app):
+        task = asyncio.create_task(schedule_loop())
+        try:
+            yield
+        finally:
+            task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
+    app.router.lifespan_context = lifecycle
     return app
