@@ -1,4 +1,4 @@
-# Build from the repository root: python -m PyInstaller AgentRadar.spec --noconfirm
+# Build from the repository root: python -m PyInstaller FolioTern.spec --noconfirm
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 from pathlib import Path
 import sys
@@ -16,6 +16,6 @@ if expat.is_file():
     a.binaries = [(name, str(expat) if name.lower() == 'libexpat.dll' else source, kind)
                   for name, source, kind in a.binaries]
 pyz = PYZ(a.pure)
-exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name='AgentRadar', debug=False,
+exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name='FolioTern', debug=False,
           bootloader_ignore_signals=False, strip=False, upx=False, console=False)
-coll = COLLECT(exe, a.binaries, a.datas, strip=False, upx=False, name='AgentRadar')
+coll = COLLECT(exe, a.binaries, a.datas, strip=False, upx=False, name='FolioTern')

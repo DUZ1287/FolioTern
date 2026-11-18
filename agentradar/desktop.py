@@ -37,7 +37,7 @@ def migrate(source, destination):
     if source == destination or destination in source.parents or source in destination.parents:
         raise ValueError('迁移目录不能相同或互相包含')
     if not (source / 'config.json').is_file():
-        raise ValueError('所选目录不是 AgentRadar 数据目录')
+        raise ValueError('所选目录不是 FolioTern 数据目录')
     if destination.exists() and any(destination.iterdir()):
         raise ValueError('迁移目标必须为空，已有数据不会被覆盖')
     config = json.loads((source / 'config.json').read_text(encoding='utf-8-sig'))
@@ -91,7 +91,7 @@ class SingleInstance:
 
 
 def show_error(message):
-    ctypes.windll.user32.MessageBoxW(None, message, 'AgentRadar', 0x10)
+    ctypes.windll.user32.MessageBoxW(None, message, 'FolioTern', 0x10)
 
 
 def launch(root):
@@ -115,7 +115,7 @@ def launch(root):
         thread.join(5)
         sock.close()
         raise RuntimeError('本地服务启动失败')
-    window = webview.create_window('AgentRadar', f'http://127.0.0.1:{port}/overview', width=1360, height=860,
+    window = webview.create_window('FolioTern', f'http://127.0.0.1:{port}/overview', width=1360, height=860,
                                     min_size=(720, 560), background_color='#edf2ff', text_select=True)
     closing = threading.Event()
 
@@ -124,7 +124,7 @@ def launch(root):
             return True
         if not closing.is_set():
             closing.set()
-            window.set_title('AgentRadar · 正在保存任务，完成后自动关闭')
+            window.set_title('FolioTern · 正在保存任务，完成后自动关闭')
             def finish():
                 while not app.state.prepare_close():
                     time.sleep(.2)
@@ -155,7 +155,7 @@ def main():
     try:
         if not instance.acquire():
             if not args.daily:
-                ctypes.windll.user32.MessageBoxW(None, 'AgentRadar 已在运行，请返回已有窗口。', 'AgentRadar', 0x40)
+                ctypes.windll.user32.MessageBoxW(None, 'FolioTern 已在运行，请返回已有窗口。', 'FolioTern', 0x40)
             return 0
         if args.migrate_from:
             migrate(args.migrate_from, args.data_dir)

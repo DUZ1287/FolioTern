@@ -14,5 +14,5 @@ if (-not $ready) {
         try { $status = Invoke-RestMethod -Uri "$address/api/status" -TimeoutSec 1; if ($null -ne $status.running) { $ready = $true; break } } catch { }
     }
 }
-if (-not $ready) { throw 'AgentRadar did not start. Check logs/server.err.log.' }
+if (-not $ready) { throw 'FolioTern did not start. Check logs/server.err.log.' }
 Start-Process $address

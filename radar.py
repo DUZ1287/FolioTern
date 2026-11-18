@@ -8,7 +8,7 @@ from agentradar.config import ROOT
 
 
 def main():
-    parser = argparse.ArgumentParser(description="AgentRadar · AI 技术雷达")
+    parser = argparse.ArgumentParser(description="FolioTern · AI 技术雷达")
     parser.add_argument("command", choices=["run", "research", "tasks", "configure", "doctor", "feedback", "practice", "serve", "export"], nargs="?", default="run")
     parser.add_argument("question", nargs="?", help="research 的研究问题；feedback 的条目 ID")
     parser.add_argument("action", nargs="?", choices=["useful", "saved", "hard", "ignore", "completed"], help="feedback 的反馈类型")

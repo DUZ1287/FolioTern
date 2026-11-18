@@ -115,7 +115,7 @@ def create_app(root: Path):
         path = root / "reports/research" / (task["id"] + ".md")
         if not path.exists():
             export_research(root, task)
-        return FileResponse(path, media_type="text/markdown; charset=utf-8", filename="AgentRadar-" + task["id"] + ".md")
+        return FileResponse(path, media_type="text/markdown; charset=utf-8", filename="FolioTern-" + task["id"] + ".md")
 
     def research_worker(question=None, resume_id=None):
         def progress(event):

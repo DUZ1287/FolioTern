@@ -51,7 +51,7 @@ def render(report=None, **context):
 def markdown(report):
     def text(value):
         return re.sub(r"([\\`*_{}\[\]()<>#+!|])", r"\\\1", " ".join(str(value).split()))
-    lines = [f"# AgentRadar · {report['date']}", "", f"模式：{report['mode']}。来源状态与限制见下文。", ""]
+    lines = [f"# FolioTern · {report['date']}", "", f"模式：{report['mode']}。来源状态与限制见下文。", ""]
     for card in report["cards"]:
         lines += ["## " + text(card["title_zh"]), "", text(card["summary"]), "",
                   "相关性：" + text(card["relevance"]), "", "限制：" + text(card["limitations"]), "",

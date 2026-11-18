@@ -58,7 +58,7 @@ def _request(client: httpx.Client, url: str, token: str = "", params=None, deadl
         # Never forward caller-provided credentials to a different public service.
         request.headers.pop("Authorization", None)
         request.headers.pop("Cookie", None)
-        request.headers["User-Agent"] = "AgentRadar/0.1 (local research reader)"
+        request.headers["User-Agent"] = "FolioTern/0.1 (local research reader)"
         if host == "api.github.com":
             request.headers["Accept"] = "application/vnd.github+json"
             if token:

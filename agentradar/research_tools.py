@@ -115,7 +115,7 @@ class ResearchTools:
                 time.sleep(wait)
             self._last_arxiv = time.monotonic()
         timeout = min(15.0, self._remaining())
-        headers = {"User-Agent": "AgentRadar/1.0", "Accept": "application/atom+xml"}
+        headers = {"User-Agent": "FolioTern/1.0", "Accept": "application/atom+xml"}
         if parts.hostname == "api.github.com":
             headers["Accept"] = "application/vnd.github+json"
             token = self.config.get("github_token")

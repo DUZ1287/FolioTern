@@ -1,10 +1,10 @@
-# AgentRadar
+# FolioTern
 
-面向个人学习与工程实践的 AI 技术研究 Agent，提供 Windows 桌面软件、命令行及可选本地 Web 工作台。桌面窗口复用原生 Function Calling Agent，保留证据、预算、SQLite 持久化与暂停恢复。
+FolioTern（原名 AgentRadar）是一款面向个人学习与工程实践的 AI 技术研究 Agent，提供 Windows 桌面软件、命令行及可选本地 Web 工作台。桌面窗口复用原生 Function Calling Agent，保留证据、预算、SQLite 持久化与暂停恢复。
 
 ## Windows 桌面版
 
-构建完成后双击 **`dist/windows/AgentRadar/AgentRadar.exe`**。分发时复制整个 `AgentRadar` 文件夹（包括 `_internal`），或运行 `scripts/Build-Desktop.ps1` 生成 Windows 压缩包。完整解压后双击其中的 EXE。桌面版默认数据目录为 `%LOCALAPPDATA%\AgentRadar`；CLI 默认仍使用项目目录，两者不会自动混写。
+构建完成后双击 **`dist/windows/FolioTern/FolioTern.exe`**。分发时复制整个 `FolioTern` 文件夹（包括 `_internal`），或运行 `scripts/Build-Desktop.ps1` 生成 Windows 压缩包。完整解压后双击其中的 EXE。为兼容已有日报、凭据和任务计划，桌面版继续使用原数据目录 `%LOCALAPPDATA%\AgentRadar`；CLI 默认仍使用项目目录，两者不会自动混写。
 
 开发环境也可以双击 `启动桌面版.cmd`。需要 Windows 10/11、.NET 4.x 与 [Microsoft Edge WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/)。窗口优先使用 WebView2，失败时不会降级到旧 IE 内核。
 
@@ -32,7 +32,7 @@
 目标必须是空目录。关闭旧任务后运行（替换示例路径）：
 
 ```powershell
-.\dist\windows\AgentRadar\AgentRadar.exe --migrate-from '旧 AgentRadar 项目目录'
+.\dist\windows\FolioTern\FolioTern.exe --migrate-from '旧 AgentRadar 项目目录'
 ```
 
 原目录不修改；使用 SQLite backup 复制日报、研究任务、证据和反馈，复制报告及非敏感来源配置。密钥不迁移，请在新模型中心重新输入。已存在桌面数据时拒绝覆盖；需要单独试迁移可加 `--data-dir '新的空目录'`。迁移不复制旧任务调度设置。
@@ -44,10 +44,10 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements-desktop.lock.txt
 .\.venv\Scripts\python.exe desktop.py
 .\.venv\Scripts\python.exe -m pytest -q
-.\.venv\Scripts\python.exe -m PyInstaller AgentRadar.spec --distpath dist/windows --noconfirm
+.\.venv\Scripts\python.exe -m PyInstaller FolioTern.spec --distpath dist/windows --noconfirm
 ```
 
-锁定依赖对应本次 Windows/Python 3.14 构建；其他 Python 版本可先按 `requirements-desktop.in` 安装兼容版本后重新验证。`AgentRadar.spec` 显式包含模板、CSS、JS、默认配置和 pywebview 资源；不包含 `.env`、本机数据库、日志和报告。构建产物和本地数据均被 Git 忽略。构建工具只用于开发与打包，分发目录自带解释器。
+锁定依赖对应本次 Windows/Python 3.14 构建；其他 Python 版本可先按 `requirements-desktop.in` 安装兼容版本后重新验证。`FolioTern.spec` 显式包含模板、CSS、JS、默认配置和 pywebview 资源；不包含 `.env`、本机数据库、日志和报告。构建产物和本地数据均被 Git 忽略。构建工具只用于开发与打包，分发目录自带解释器。
 
 ### 桌面升级验证范围
 
@@ -57,7 +57,7 @@ python -m venv .venv
 
 ## 可视化工作台
 
-双击 `打开AgentRadar.cmd`，或运行 `python radar.py serve` 后访问 `http://127.0.0.1:8765`。
+双击 `打开FolioTern.cmd`，或运行 `python radar.py serve` 后访问 `http://127.0.0.1:8765`。
 
 - 从首页点击“开始研究”，或从主导航进入“研究”输入问题。
 - 实时查看工具调用轨迹、证据列表和研究阶段。
@@ -90,13 +90,12 @@ python -m venv .venv
 
 ## 开始使用（当前电脑）
 
-项目位于 `D:\个人项目\AgentRadar`，独立 Python 环境已创建。
+以下命令在项目根目录运行。
 
 1. 双击 `配置模型.cmd`，在本机输入兼容 API 地址、模型名称和 API Key；密钥输入不显示。接口地址通常包含 `/v1`，不要附加 `/chat/completions`。
 2. 双击 `开始研究.cmd`，输入研究目标。也可以在 PowerShell 执行：
 
 ```powershell
-Set-Location 'D:\个人项目\AgentRadar'
 .\.venv\Scripts\python.exe radar.py research '最近有哪些适合 Windows Python 项目实践的 Agent 记忆方案？比较原始资料与限制，给一个两小时的小实验。'
 ```
 

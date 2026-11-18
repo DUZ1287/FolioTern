@@ -68,7 +68,7 @@ def fetch_feed(url, deadline=None):
         conn = PinnedHTTPS(p.hostname, addresses[0], min(15, remaining))
         try:
             conn.request('GET', p.path + ('?' + p.query if p.query else ''), headers={
-                'User-Agent': 'AgentRadar/desktop', 'Accept-Encoding': 'identity', 'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml'})
+                'User-Agent': 'FolioTern/desktop', 'Accept-Encoding': 'identity', 'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml'})
             response = conn.getresponse()
             if response.status != 200:
                 raise CollectionError('RSS 重定向已阻止' if 300 <= response.status < 400 else f'RSS 返回 HTTP {response.status}')

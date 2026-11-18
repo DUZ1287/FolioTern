@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="zh-CN">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="csrf-token" content="{{ csrf }}"><title>AgentRadar · 个人技术雷达</title><style>{{ styles | safe }}</style></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="csrf-token" content="{{ csrf }}"><title>FolioTern · 个人技术雷达</title><style>{{ styles | safe }}</style></head>
 <body data-theme="{{appearance.theme}}" data-motion="{{'reduce' if appearance.reduce_motion else 'normal'}}" data-page="{{page}}">
 {% set titles = {'overview':'首页','today':'每日情报','history':'历史日报','research':'自主研究','saved':'知识库','practice':'工程实践','settings':'设置','sources':'信息源','models':'模型与连接','automation':'自动任务','status':'运行记录','system':'外观与存储'} %}
 {% set preferences = [('sources','信息源','管理订阅、关键词和采集数量'),('models','模型与连接','配置 API、模型用途和调用预算'),('automation','自动任务','设置每日采集时间与后台运行'),('system','外观与存储','选择主题、减少动画并查看数据目录'),('status','运行记录','检查最近的采集结果与失败原因')] %}
@@ -8,7 +8,7 @@
 {% set active_nav = 'overview' if page in ['today','history'] else 'settings' if page in setting_pages else page %}
 {% if live %}
 <aside class="rail">
-  <a class="brand" href="/overview" aria-label="AgentRadar 首页"><span class="brand-icon" aria-hidden="true">◎</span> AgentRadar</a>
+  <a class="brand" href="/overview" aria-label="FolioTern 首页"><span class="brand-icon" aria-hidden="true">◎</span> FolioTern</a>
   <nav aria-label="主导航">
     {% for key,label,icon in [('overview','首页','◉'),('research','研究','◎'),('saved','知识库','◇'),('practice','实践','↗'),('settings','设置','⚙')] %}
     <a class="nav-item {{ 'active' if active_nav == key else '' }}" href="/{{key}}" {% if active_nav == key %}aria-current="location"{% endif %}><span aria-hidden="true">{{icon}}</span><b>{{label}}</b></a>

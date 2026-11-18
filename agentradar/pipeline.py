@@ -117,7 +117,7 @@ def run(root: Path, *, client=None, config=None):
         budget.deadline = config["_deadline"]
         own_client = client is None
         client = client or httpx.Client(timeout=config.get("http_timeout_seconds", 20),
-                                       follow_redirects=False, headers={"User-Agent": "AgentRadar/0.1 personal research"})
+                                       follow_redirects=False, headers={"User-Agent": "FolioTern/0.1 personal research"})
         try:
             items, statuses = collect(client, config, store.checkpoints())
             incoming = store.save_collection(items, statuses)
