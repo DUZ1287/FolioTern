@@ -32,7 +32,13 @@ def task_record(status="paused"):
 
 def test_workspace_home_daily_and_no_model(root):
     with TestClient(create_app(root)) as client:
-        html = client.get("/").text
+        home = client.get("/").text
+        assert 'data-page="overview"' in home and 'href="/settings"' in home
+        assert 'href="/models"' not in home and 'href="/sources"' not in home
+        settings = client.get("/settings").text
+        for section in ("sources", "models", "automation", "system", "status"):
+            assert f'href="/{section}"' in settings
+        html = client.get("/research").text
         assert "给 Agent 一个值得研究的问题" in html
         assert "等待连接模型" in html
         assert client.get("/today").status_code == 200

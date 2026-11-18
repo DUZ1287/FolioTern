@@ -57,7 +57,7 @@ async function loadProfiles(){
     const result=node('div','config-result');if(x.last_test){result.append(node('p','',`${x.last_test.ok?'完整能力测试通过':'能力测试未通过'} · ${new Date(x.last_test.checked_at).toLocaleString('zh-CN')}`));for(const stage of x.last_test.stages)result.append(node('p',stage.ok?'':'config-error',(stage.ok?'✓ ':'× ')+stage.name+'：'+stage.message));}else result.append(node('p','','尚未验证实际连接与工具调用能力。'));card.append(result);list.append(card);
   }
 }
-if(['models','settings'].includes(currentPage)){
+if(currentPage==='models'){
   document.getElementById('add-profile').onclick=()=>profileDialog();const f=document.getElementById('profile-form');
   f.onsubmit=async e=>{e.preventDefault();const b=f.querySelector('[type=submit]');b.disabled=true;try{const v=Object.fromEntries(new FormData(f));for(const k of ['enabled','json_mode'])v[k]=f.elements[k].checked;for(const k of ['max_llm_calls','max_token_budget','max_output_tokens'])v[k]=Number(v[k]);await api('/api/profiles'+(profileEditing?'/'+profileEditing:''),profileEditing?'PUT':'POST',v);f.elements.api_key.value='';document.getElementById('profile-dialog').close();await loadProfiles();tell('模型档案已安全保存。选择“使用此模型”即可生效。');}catch(e){f.querySelector('.dialog-error').textContent=e.message;}finally{b.disabled=false;}};
   loadProfiles().catch(e=>tell(e.message,true));
@@ -66,13 +66,12 @@ async function loadSystem(){
   const s=await api('/api/system');
   if(currentPage==='system'){fillForm(document.getElementById('appearance-form'),s.appearance);document.getElementById('data-path').textContent=s.data_path;}
   if(currentPage==='automation'){fillForm(document.getElementById('schedule-form'),s.schedule);document.getElementById('last-auto').textContent=s.last_auto_date?'窗口内最近尝试日期：'+s.last_auto_date:''; const run=s.last_external_run;document.getElementById('external-result').textContent=run?'最近后台运行 · '+new Date(run.at).toLocaleString('zh-CN')+' · '+run.message:'尚无后台采集记录。';}
-  if(currentPage==='overview'){const stats=document.getElementById('overview-stats');stats.replaceChildren();for(const [n,label] of [[s.stats.total_items,'已收录信息'],[s.stats.reports,'已归档日报'],[s.state.running?'运行中':'就绪','当前任务状态']]){const box=node('div','');box.append(node('strong','',String(n)),node('span','',label));stats.append(box);}}
   if(currentPage==='status'){
     document.getElementById('runtime-state').textContent=(s.state.running?'当前任务正在运行：'+s.state.kind:'当前无正在运行的任务。')+(s.state.error?' '+s.state.error:'');const list=document.getElementById('run-list');list.replaceChildren();
     for(const r of s.runs){const box=node('article','config-card');box.append(node('h3','',new Date(r.saved_at).toLocaleString('zh-CN')),node('p','config-meta',`保存 ${r.item_ids.length} 个版本`));for(const x of r.statuses)box.append(node('p',x.error?'config-error':'config-meta',`${x.name||x.source} · ${statusLabel[x.status]||x.status} · ${x.count} 条${x.error?' · '+x.error:''}`));list.append(box);}if(!s.runs.length)list.append(node('div','config-empty','还没有采集日志。信息源测试结果显示在信息源管理页。'));
   }
 }
-if(['system','automation','overview','status'].includes(currentPage))loadSystem().catch(e=>tell(e.message,true));
+if(['system','automation','status'].includes(currentPage))loadSystem().catch(e=>tell(e.message,true));
 document.getElementById('reload-status')?.addEventListener('click',()=>loadSystem().catch(e=>tell(e.message,true)));
 document.getElementById('appearance-form')?.addEventListener('submit',async e=>{e.preventDefault();const f=e.target;try{const v={theme:f.elements.theme.value,reduce_motion:f.elements.reduce_motion.checked};await post('/api/appearance',v);document.body.dataset.theme=v.theme;document.body.dataset.motion=v.reduce_motion?'reduce':'normal';tell('外观已保存。');}catch(e){tell(e.message,true);}});
 document.getElementById('schedule-form')?.addEventListener('submit',async e=>{e.preventDefault();const f=e.target;try{const v=await post('/api/schedule',{time:f.elements.time.value,enabled:f.elements.enabled.checked,background:f.elements.background.checked});tell(v.message);}catch(e){tell(e.message,true);}});

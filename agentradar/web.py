@@ -76,7 +76,7 @@ def create_app(root: Path):
 
     @app.get("/", response_class=HTMLResponse)
     def today(date: str | None = None):
-        return page("today" if date else "research", date)
+        return page("today" if date else "overview", date)
 
     @app.get("/{name}", response_class=HTMLResponse)
     def section(name: str):
